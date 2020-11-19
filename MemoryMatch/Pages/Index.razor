@@ -1,0 +1,74 @@
+﻿@page "/"
+
+@code {
+	int numberOfCards = 16;
+	List<int> cards = new List<int>();
+	int[] cardArray = new int[16];
+	List<int> clickedCards = new List<int>();
+	List<int> matchedCards = new List<int>();
+
+	protected override void OnInitialized()
+	{
+		for (int i = 1; i <= numberOfCards / 2; i++)
+		{
+			cards.Add(i);
+			cards.Add(i);
+		}
+
+		for (int i = 0; i < numberOfCards; i++)
+		{
+			Random random = new Random();
+			int randomNumber = random.Next(0, cards.Count - 1);
+			cardArray[i] = cards[randomNumber];
+			cards.RemoveAt(randomNumber);
+		}
+	}
+
+	void CardClicked(int index)
+	{
+		if (clickedCards.Count == 2)
+			return;
+		clickedCards.Add(index);
+
+		Task.Delay(1000).ContinueWith((t) =>
+		{
+			if (clickedCards.Count == 2)
+			{
+				int num1 = cardArray[clickedCards[0]];
+				int num2 = cardArray[clickedCards[1]];
+
+				if (num1 == num2)
+				{
+					matchedCards.Add(clickedCards[0]);
+					matchedCards.Add(clickedCards[1]);
+				}
+
+				clickedCards.Clear();
+				StateHasChanged();
+			}
+		});
+
+	}
+
+}
+
+<h1>Blazor Memory Matching</h1>
+<p>Take turns selecting cards to match them.</p>
+
+<div class="memory-grid">
+	@for (int index = 0; index < cardArray.Length; index++)
+	{
+		int localIndex = index;
+		int card = cardArray[index];
+		if (matchedCards.Contains(index))
+		{
+			<div class="found"></div>
+		}
+		else
+		{
+			<div @onclick="() => CardClicked(localIndex)">
+				<span hidden="@(!clickedCards.Contains(localIndex))">@card</span>
+			</div>
+		}
+	}
+</div>
